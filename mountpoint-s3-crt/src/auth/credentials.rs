@@ -154,6 +154,9 @@ impl CredentialsProvider {
     pub fn web_identity(allocator: &Allocator, options: CredentialsProviderWebIdentityOptions) -> Result<Self, Error> {
         auth_library_init(allocator);
 
+        println!("role_arn: {}", options.role_arn);
+        println!("token_file_path: {}", options.token_file_path);
+
         // SAFETY: aws_credentials_provider_new_sts_web_identity makes a copy of the strings
         let inner: NonNull<_> = unsafe {
             let inner_options = aws_credentials_provider_sts_web_identity_options {
@@ -161,6 +164,7 @@ impl CredentialsProvider {
                 token_file_path: options.token_file_path.as_aws_byte_cursor(),
                 ..Default::default()
             };
+            println("getting aws credentials for web identity")
             aws_credentials_provider_new_sts_web_identity(allocator.inner.as_ptr(), &inner_options)
                 .ok_or_last_error()?
         };
