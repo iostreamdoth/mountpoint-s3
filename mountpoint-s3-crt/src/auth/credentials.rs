@@ -160,7 +160,7 @@ impl CredentialsProvider {
         println!("token_file_path: {}", options.token_file_path);
 
         // SAFETY: aws_credentials_provider_new_sts_web_identity makes a copy of the strings
-        let inner: NonNull<_> = unsafe {
+        let inner = unsafe {
             let inner_options = aws_credentials_provider_sts_web_identity_options {
                 bootstrap: options.bootstrap.inner.as_ptr(),
                 role_arn: options.role_arn.as_aws_byte_cursor(),
@@ -168,8 +168,9 @@ impl CredentialsProvider {
                 ..Default::default()
             };
             println!("getting aws credentials for web identity");
-            aws_credentials_provider_new_sts_web_identity(allocator.inner.as_ptr(), &inner_options)
-                .ok_or_last_error()?
+
+            aws_credentials_provider_new_sts_web_identity(allocator.inner.as_ptr(), &inner_options).ok_or_last_error()?
+            println!("got aws credentials for web identity");
         };
 
         Ok(Self { inner })
