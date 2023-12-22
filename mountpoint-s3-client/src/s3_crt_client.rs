@@ -276,6 +276,7 @@ impl S3CrtClientInner {
             S3ClientAuthConfig::WebIdentity(role_arn, token_file ) => {
                 let credentials_web_identity_options: CredentialsProviderWebIdentityOptions<'_> =
                     CredentialsProviderWebIdentityOptions {
+                        bootstrap: &mut client_bootstrap,
                         role_arn: &role_arn,
                         token_file_path: &token_file,
                     };

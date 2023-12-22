@@ -47,6 +47,8 @@ pub struct CredentialsProviderStaticOptions<'a> {
 /// Options for creating a STS Web Identity credentials provider
 #[derive(Debug)]
 pub struct CredentialsProviderWebIdentityOptions<'a> {
+    /// The client bootstrap this credentials provider should use to setup channels
+    pub bootstrap: &'a mut ClientBootstrap,
     /// AWS role ARN
     pub role_arn: &'a str,
     /// AWS token file
@@ -160,6 +162,7 @@ impl CredentialsProvider {
         // SAFETY: aws_credentials_provider_new_sts_web_identity makes a copy of the strings
         let inner: NonNull<_> = unsafe {
             let inner_options = aws_credentials_provider_sts_web_identity_options {
+                bootstrap: options.bootstrap.inner.as_ptr(),
                 role_arn: options.role_arn.as_aws_byte_cursor(),
                 token_file_path: options.token_file_path.as_aws_byte_cursor(),
                 ..Default::default()
