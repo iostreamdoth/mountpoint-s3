@@ -170,8 +170,8 @@ impl CredentialsProvider {
             println!("getting aws credentials for web identity");
 
             aws_credentials_provider_new_sts_web_identity(allocator.inner.as_ptr(), &inner_options).ok_or_last_error()?
-            println!("got aws credentials for web identity");
         };
+        println!("got aws credentials for web identity");
 
         Ok(Self { inner })
     }
