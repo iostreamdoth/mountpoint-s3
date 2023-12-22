@@ -768,6 +768,8 @@ fn env_region() -> Option<String> {
 }
 
 fn get_web_identity_vars() -> (String, String) {
+    
+    println!("Getting web identity token variables");
     let role_arn = role_arn().expect("AWS_ROLE_ARN must be set");
     let token_file = token_file().expect("AWS_WEB_IDENTITY_TOKEN_FILE must be set");
     return (role_arn, token_file);
