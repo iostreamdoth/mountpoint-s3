@@ -251,8 +251,8 @@ impl S3CrtClientInner {
         retry_strategy_options.backoff_retry_options.backoff_scale_factor = Duration::from_millis(500);
         retry_strategy_options.backoff_retry_options.jitter_mode = ExponentialBackoffJitterMode::Full;
         let retry_strategy = RetryStrategy::standard(&allocator, &retry_strategy_options).unwrap();
-        println("constructing client with auth config {:?}", config.auth_config);
-        
+        println!("constructing client with auth config {:?}", config.auth_config);
+
         trace!("constructing client with auth config {:?}", config.auth_config);
         let credentials_provider = match config.auth_config {
             S3ClientAuthConfig::Default => {
