@@ -45,6 +45,7 @@ pub struct CredentialsProviderStaticOptions<'a> {
 }
 
 /// Options for creating a STS Web Identity credentials provider
+#[derive(Debug)]
 pub struct CredentialsProviderWebIdentityOptions<'a> {
     /// AWS role ARN
     pub role_arn: &'a str,
@@ -153,7 +154,7 @@ impl CredentialsProvider {
     pub fn web_identity(allocator: &Allocator, options: CredentialsProviderWebIdentityOptions) -> Result<Self, Error> {
         auth_library_init(allocator);
 
-        /// SAFETY: aws_credentials_provider_new_sts_web_identity makes a copy of the strings
+        // SAFETY: aws_credentials_provider_new_sts_web_identity makes a copy of the strings
         let inner: NonNull<_> = unsafe {
             let inner_options = aws_credentials_provider_sts_web_identity_options {
                 role_arn: options.role_arn.as_aws_byte_cursor(),
