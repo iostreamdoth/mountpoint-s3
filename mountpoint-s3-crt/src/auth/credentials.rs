@@ -164,7 +164,7 @@ impl CredentialsProvider {
                 token_file_path: options.token_file_path.as_aws_byte_cursor(),
                 ..Default::default()
             };
-            println~("getting aws credentials for web identity");
+            println!("getting aws credentials for web identity");
             aws_credentials_provider_new_sts_web_identity(allocator.inner.as_ptr(), &inner_options)
                 .ok_or_last_error()?
         };
