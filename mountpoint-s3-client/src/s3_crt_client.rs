@@ -10,7 +10,7 @@ use std::task::{Context, Poll};
 use std::time::{Duration, Instant};
 
 use mountpoint_s3_crt::auth::credentials::{
-    CredentialsProvider, CredentialsProviderChainDefaultOptions, CredentialsProviderProfileOptions,
+    CredentialsProvider, CredentialsProviderChainDefaultOptions, CredentialsProviderProfileOptions, CredentialsProviderWebIdentityOptions,
 };
 use mountpoint_s3_crt::auth::signing_config::SigningConfig;
 use mountpoint_s3_crt::common::allocator::Allocator;
@@ -170,6 +170,8 @@ pub enum S3ClientAuthConfig {
     Profile(String),
     /// Use a custom credentials provider
     Provider(CredentialsProvider),
+    /// Web identity token provider
+    WebIdentity(String, String),
 }
 
 /// An S3 client that uses the [AWS Common Runtime (CRT)][crt] to make requests.
@@ -268,6 +270,15 @@ impl S3CrtClientInner {
                     profile_name_override: &profile_name,
                 };
                 CredentialsProvider::new_profile(&allocator, credentials_profile_options)
+                    .map_err(NewClientError::ProviderFailure)?
+            }
+            S3ClientAuthConfig::WebIdentity(role_arn, token_file ) => {
+                let credentials_web_identity_options: CredentialsProviderWebIdentityOptions<'_> =
+                    CredentialsProviderWebIdentityOptions {
+                        role_arn: &role_arn,
+                        token_file_path: &token_file,
+                    };
+                CredentialsProvider::web_identity(&allocator, credentials_web_identity_options)
                     .map_err(NewClientError::ProviderFailure)?
             }
             S3ClientAuthConfig::Provider(provider) => provider,

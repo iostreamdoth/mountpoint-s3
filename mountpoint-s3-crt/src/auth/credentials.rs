@@ -8,7 +8,8 @@ use mountpoint_s3_crt_sys::{
     aws_credentials_provider_new_anonymous, aws_credentials_provider_new_chain_default,
     aws_credentials_provider_new_profile, aws_credentials_provider_new_static,
     aws_credentials_provider_profile_options, aws_credentials_provider_release,
-    aws_credentials_provider_static_options,
+    aws_credentials_provider_static_options, aws_credentials_provider_new_sts_web_identity,
+    aws_credentials_provider_sts_web_identity_options
 };
 
 use crate::auth::auth_library_init;
@@ -41,6 +42,14 @@ pub struct CredentialsProviderStaticOptions<'a> {
     pub secret_access_key: &'a str,
     /// AWS session token (only required for some credentials sources, e.g. STS)
     pub session_token: Option<&'a str>,
+}
+
+/// Options for creating a STS Web Identity credentials provider
+pub struct CredentialsProviderWebIdentityOptions<'a> {
+    /// AWS role ARN
+    pub role_arn: &'a str,
+    /// AWS token file
+    pub token_file_path: &'a str,
 }
 
 impl Debug for CredentialsProviderStaticOptions<'_> {
@@ -135,6 +144,24 @@ impl CredentialsProvider {
             };
 
             aws_credentials_provider_new_static(allocator.inner.as_ptr(), &inner_options).ok_or_last_error()?
+        };
+
+        Ok(Self { inner })
+    }
+
+    /// Creates a STS Web Identity credential provider.
+    pub fn web_identity(allocator: &Allocator, options: CredentialsProviderWebIdentityOptions) -> Result<Self, Error> {
+        auth_library_init(allocator);
+
+        /// SAFETY: aws_credentials_provider_new_sts_web_identity makes a copy of the strings
+        let inner: NonNull<_> = unsafe {
+            let inner_options = aws_credentials_provider_sts_web_identity_options {
+                role_arn: options.role_arn.as_aws_byte_cursor(),
+                token_file_path: options.token_file_path.as_aws_byte_cursor(),
+                ..Default::default()
+            };
+            aws_credentials_provider_new_sts_web_identity(allocator.inner.as_ptr(), &inner_options)
+                .ok_or_last_error()?
         };
 
         Ok(Self { inner })

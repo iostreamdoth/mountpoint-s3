@@ -259,6 +259,9 @@ struct CliArgs {
         help_heading = ADVANCED_OPTIONS_HEADER,
     )]
     pub user_agent_prefix: Option<String>,
+
+    #[clap(short, long, help = "Enable using web identity", help_heading = LOGGING_OPTIONS_HEADER)]
+    pub web_identity: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -511,6 +514,9 @@ fn mount(args: CliArgs) -> anyhow::Result<FuseSession> {
         S3ClientAuthConfig::NoSigning
     } else if let Some(profile_name) = args.profile {
         S3ClientAuthConfig::Profile(profile_name)
+    } else if args.web_identity {
+        let(role_arn, token_file) = get_web_identity_vars();
+        S3ClientAuthConfig::WebIdentity(role_arn, token_file)
     } else {
         S3ClientAuthConfig::Default
     };
@@ -760,6 +766,21 @@ fn parse_duration_seconds(seconds_str: &str) -> anyhow::Result<Duration> {
 fn env_region() -> Option<String> {
     env::var_os("AWS_REGION").map(|val| val.to_string_lossy().into())
 }
+
+fn get_web_identity_vars() -> (String, String) {
+    let role_arn = role_arn().expect("AWS_ROLE_ARN must be set");
+    let token_file = token_file().expect("AWS_WEB_IDENTITY_TOKEN_FILE must be set");
+    return (role_arn, token_file);
+}
+
+fn role_arn() -> Option<String> {
+    env::var_os("AWS_ROLE_ARN").map(|val| val.to_string_lossy().into())
+}
+
+fn token_file() -> Option<String> {
+    env::var_os("AWS_WEB_IDENTITY_TOKEN_FILE").map(|val| val.to_string_lossy().into())
+}
+
 
 /// Determine the region using the following sources (in order):
 ///  * `--region` flag (user-provided),
